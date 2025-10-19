@@ -1,6 +1,18 @@
 import { Request, Response } from "express";
-import { createUserModel, getUsersModel } from "../user.model";
-import { CreateUserDTO, UserDTO, UserFilterDTO } from "../user/user.dto";
+import {
+  createUserModel,
+  deleteUserModel,
+  getUniqueUserByEmailModel,
+  getUniqueUserByIdModel,
+  getUsersModel,
+  updateUserStatusModel,
+} from "../user/user.model";
+import {
+  CreateUserDTO,
+  UpdateUserDTO,
+  UserDTO,
+  UserFilterDTO,
+} from "../user/user.dto";
 
 export async function getUsersController(req: Request, res: Response) {
   let { role, status } = req.query as UserFilterDTO;
@@ -37,6 +49,54 @@ export async function createUserController(req: Request, res: Response) {
     res.status(201).send(newUser);
   } catch (err) {
     console.error("Error creating user:", err);
-    res.status(500).send("Internal Server Error");
+    res.status(500).send({ error: "Internal Server Error" });
+  }
+}
+
+export async function getUniqueUserByEmailController(
+  req: Request,
+  res: Response
+) {
+  const { email } = req.body;
+  try {
+    const user = await getUniqueUserByEmailModel(email);
+    res.status(200).send(user);
+  } catch (error) {
+    console.error("Error fetching user by email:", error);
+    res.status(500).send({ error: "Error fetching user by email" });
+  }
+}
+
+export async function getUniqueUserByIdController(req: Request, res: Response) {
+  const { id } = req.params;
+  try {
+    const user = await getUniqueUserByIdModel(id);
+    res.status(200).send(user);
+  } catch (error) {
+    console.error("Error fetching user by Id: ", error);
+    res.status(500).send({ error: "Error fetching user by Id" });
+  }
+}
+
+export async function updateUserController(req: Request, res: Response) {
+  const { id } = req.params;
+  const userData: UpdateUserDTO = req.body;
+  try {
+    await updateUserStatusModel(id, { ...userData });
+    res.sendStatus(200);
+  } catch (error) {
+    console.error("Error updating user:", error);
+    res.status(500).send({ error: "Error updating user" });
+  }
+}
+
+export async function deleteUserController(req: Request, res: Response) {
+  const { id } = req.params;
+  try {
+    await deleteUserModel(id);
+    res.sendStatus(204);
+  } catch (error) {
+    console.error("Error deleting user:", error);
+    res.status(500).send({ error: "Error deleting user" });
   }
 }

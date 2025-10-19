@@ -2,7 +2,7 @@ import { DataTypes } from "sequelize";
 import sequelize from "../../configs/db";
 import {
   CreateUserDTO,
-  UpdateUserStatusDTO,
+  UpdateUserDTO,
   UserDTO,
   UserFilterDTO,
 } from "../user/user.dto";
@@ -71,7 +71,7 @@ export async function getUniqueUserByEmailModel(email: string) {
   }
 }
 
-export async function getUniqueUserByIdModel(id: number) {
+export async function getUniqueUserByIdModel(id: number | string) {
   try {
     const user = await User.findByPk(id);
     return user;
@@ -81,16 +81,33 @@ export async function getUniqueUserByIdModel(id: number) {
   }
 }
 
-export async function updateUserStatusModel(data: UpdateUserStatusDTO) {
-  const { status, id } = data;
+export async function updateUserStatusModel(
+  id: number | string,
+  data: UpdateUserDTO
+) {
   try {
     const user = await getUniqueUserByIdModel(id);
     if (!user) {
       throw new Error("User not found");
     }
-    return User.update({ status }, { where: { id } });
+    const updateUser = User.update({ ...data }, { where: { id } });
+    return updateUser;
   } catch (error) {
     console.error("Error updating user status:", error);
     throw Error("Failed to update user status");
+  }
+}
+
+export async function deleteUserModel(id: number | string) {
+  try {
+    const user = await getUniqueUserByIdModel(id);
+    if (!user) {
+      throw new Error("User not found");
+    }
+    const deleteuser = await User.destroy({ where: { id } });
+    return deleteuser;
+  } catch (error) {
+    console.error("Error deleting user:", error);
+    throw Error("Failed to delete user");
   }
 }

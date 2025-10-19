@@ -1,23 +1,23 @@
-import express, { type Request, type Response } from "express";
+import express from "express";
 import { PORT } from "./configs/contants";
 import { initializeDatabase } from "./configs/db";
 import {
   createUserController,
+  getUniqueUserByIdController,
   getUsersController,
+  updateUserController,
 } from "./features/user/user.controller";
-import bodyParser from "body-parser";
 
 const app = express();
 
-// app.use(bodyParser.json());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-app.get("/", (req: Request, res: Response) => {
-  res.send("Hello from Express with TypeScript!");
-});
 app.get("/users", getUsersController);
 app.post("/users", createUserController);
+app.get("/users/:id", getUniqueUserByIdController);
+app.put("/users/:id", updateUserController);
+app.delete("/users/:id");
 
 async function startServer() {
   try {
