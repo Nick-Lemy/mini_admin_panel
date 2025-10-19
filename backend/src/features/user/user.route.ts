@@ -13,7 +13,7 @@ const userRouter = Router();
 
 userRouter.get("/", getUsersController);
 userRouter.post("/", createUserController);
-userRouter.post("/migrate", migrateUsersController);  // Migration endpoint
+userRouter.post("/migrate", migrateUsersController); // Migration endpoint
 userRouter.get("/export", exportUsersProtobufController);
 userRouter.options("/export", (req, res) => {
   res.setHeader("Access-Control-Allow-Origin", req.headers.origin || "*");
