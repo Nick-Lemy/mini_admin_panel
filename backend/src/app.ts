@@ -1,10 +1,10 @@
 import express, { type Request, type Response } from "express";
-import { PORT } from "./utils/contants";
-import { initializeDatabase } from "./utils/db";
+import { PORT } from "./configs/contants";
+import { initializeDatabase } from "./configs/db";
 import {
   createUserController,
   getUsersController,
-} from "./features/user.controller";
+} from "./features/user/user.controller";
 import bodyParser from "body-parser";
 
 const app = express();
@@ -21,7 +21,7 @@ app.post("/users", createUserController);
 
 async function startServer() {
   try {
-    await import("./features/user.model");
+    await import("./features/user/user.model");
     await initializeDatabase();
 
     app.listen(PORT, () => {

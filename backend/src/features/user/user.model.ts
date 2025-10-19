@@ -1,11 +1,11 @@
 import { DataTypes } from "sequelize";
-import sequelize from "../configs/db";
+import sequelize from "../../configs/db";
 import {
   CreateUserDTO,
   UpdateUserStatusDTO,
   UserDTO,
   UserFilterDTO,
-} from "./user/user.dto";
+} from "../user/user.dto";
 
 const User = sequelize.define(
   "User",

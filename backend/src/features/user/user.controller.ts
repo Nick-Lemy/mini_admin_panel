@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
-import { createUserModel, getUsersModel } from "./user.model";
-import { CreateUserDTO, UserDTO, UserFilterDTO } from "./user.dto";
+import { createUserModel, getUsersModel } from "../user.model";
+import { CreateUserDTO, UserDTO, UserFilterDTO } from "../user/user.dto";
 
 export async function getUsersController(req: Request, res: Response) {
   let { role, status } = req.query as UserFilterDTO;
