@@ -1,23 +1,14 @@
 import express from "express";
 import { PORT } from "./configs/contants";
 import { initializeDatabase } from "./configs/db";
-import {
-  createUserController,
-  getUniqueUserByIdController,
-  getUsersController,
-  updateUserController,
-} from "./features/user/user.controller";
+import userRouter from "./features/user/user.route";
 
 const app = express();
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-app.get("/users", getUsersController);
-app.post("/users", createUserController);
-app.get("/users/:id", getUniqueUserByIdController);
-app.put("/users/:id", updateUserController);
-app.delete("/users/:id");
+app.use("/users", userRouter);
 
 async function startServer() {
   try {
