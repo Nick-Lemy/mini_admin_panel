@@ -13,6 +13,8 @@ import {
   UserDTO,
   UserFilterDTO,
 } from "../user/user.dto";
+import { serializeUsers } from "../../services/protobuf.service";
+import { getPublicKey } from "../../services/crypto.service";
 
 export async function getUsersController(req: Request, res: Response) {
   let { role, status } = req.query as UserFilterDTO;
@@ -98,5 +100,32 @@ export async function deleteUserController(req: Request, res: Response) {
   } catch (error) {
     console.error("Error deleting user:", error);
     res.status(500).send({ error: "Error deleting user" });
+  }
+}
+
+export async function exportUsersProtobufController(
+  req: Request,
+  res: Response
+) {
+  try {
+    const users = await getUsersModel({});
+    const protobufData = serializeUsers(users);
+
+    res.setHeader("Content-Type", "application/x-protobuf");
+    res.setHeader("Content-Disposition", "attachment; filename=users.pb");
+    res.send(protobufData);
+  } catch (error) {
+    console.error("Error exporting users as protobuf:", error);
+    res.status(500).send({ error: "Error exporting users" });
+  }
+}
+
+export async function getPublicKeyController(req: Request, res: Response) {
+  try {
+    const publicKey = getPublicKey();
+    res.status(200).json({ publicKey });
+  } catch (error) {
+    console.error("Error getting public key:", error);
+    res.status(500).send({ error: "Error getting public key" });
   }
 }

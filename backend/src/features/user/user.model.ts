@@ -6,6 +6,7 @@ import {
   UserDTO,
   UserFilterDTO,
 } from "../user/user.dto";
+import { hashAndSignEmail } from "../../services/crypto.service";
 
 const User = sequelize.define(
   "User",
@@ -23,6 +24,14 @@ const User = sequelize.define(
       type: DataTypes.ENUM("active", "inactive"),
       allowNull: true,
     },
+    emailHash: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    signature: {
+      type: DataTypes.TEXT,
+      allowNull: true,
+    },
   },
   {
     timestamps: true,
@@ -36,7 +45,15 @@ export async function createUserModel(data: CreateUserDTO) {
     if (existingUser) {
       throw new Error("User with this email already exists");
     }
-    return User.create({ ...data });
+
+    // Hash and sign the email
+    const { emailHash, signature } = hashAndSignEmail(data.email);
+
+    return User.create({
+      ...data,
+      emailHash,
+      signature,
+    });
   } catch (error) {
     console.error("Error checking existing user:", error);
     throw Error("Failed to create user");
