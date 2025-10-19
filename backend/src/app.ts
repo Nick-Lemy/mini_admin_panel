@@ -6,7 +6,16 @@ import userRouter from "./features/user/user.route";
 
 const app = express();
 
-app.use(cors());
+// Configure CORS with specific options
+app.use(
+  cors({
+    origin: ["http://localhost:3000", "http://localhost:3001"],
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
+    exposedHeaders: ["Content-Type", "Content-Length"],
+    credentials: true,
+  })
+);
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 

@@ -14,7 +14,8 @@ import {
   UserFilterDTO,
 } from "../user/user.dto";
 import { serializeUsers } from "../../services/protobuf.service";
-import { getPublicKey } from "../../services/crypto.service";
+import { getPublicKey, hashAndSignEmail } from "../../services/crypto.service";
+import User from "./user.model";
 
 export async function getUsersController(req: Request, res: Response) {
   let { role, status } = req.query as UserFilterDTO;
@@ -111,8 +112,12 @@ export async function exportUsersProtobufController(
     const users = await getUsersModel({});
     const protobufData = serializeUsers(users);
 
+    // Set CORS headers explicitly
+    res.setHeader("Access-Control-Allow-Origin", req.headers.origin || "*");
+    res.setHeader("Access-Control-Allow-Methods", "GET, OPTIONS");
+    res.setHeader("Access-Control-Allow-Headers", "Content-Type");
     res.setHeader("Content-Type", "application/x-protobuf");
-    res.setHeader("Content-Disposition", "attachment; filename=users.pb");
+    res.setHeader("Content-Length", protobufData.length.toString());
     res.send(protobufData);
   } catch (error) {
     console.error("Error exporting users as protobuf:", error);
@@ -123,9 +128,41 @@ export async function exportUsersProtobufController(
 export async function getPublicKeyController(req: Request, res: Response) {
   try {
     const publicKey = getPublicKey();
+
+    // Set CORS headers explicitly
+    res.setHeader("Access-Control-Allow-Origin", req.headers.origin || "*");
+    res.setHeader("Access-Control-Allow-Methods", "GET, OPTIONS");
+    res.setHeader("Access-Control-Allow-Headers", "Content-Type");
     res.status(200).json({ publicKey });
   } catch (error) {
     console.error("Error getting public key:", error);
     res.status(500).send({ error: "Error getting public key" });
+  }
+}
+
+// Migration endpoint to add signatures to existing users
+export async function migrateUsersController(req: Request, res: Response) {
+  try {
+    const users = await User.findAll();
+    let updated = 0;
+
+    for (const user of users) {
+      const userData = user.get({ plain: true }) as any;
+      if (!userData.emailHash || !userData.signature) {
+        const { emailHash, signature } = hashAndSignEmail(userData.email);
+        await user.update({ emailHash, signature });
+        updated++;
+        console.log(`✅ Updated user ${userData.id}: ${userData.email}`);
+      }
+    }
+
+    res.status(200).json({
+      message: `Migration complete. Updated ${updated} users.`,
+      totalUsers: users.length,
+      updatedUsers: updated,
+    });
+  } catch (error) {
+    console.error("Error migrating users:", error);
+    res.status(500).send({ error: "Error migrating users" });
   }
 }

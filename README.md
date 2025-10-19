@@ -90,13 +90,24 @@ cd frontend
 npm install
 ```
 
-3. Start the development server:
+3. (Optional) Configure environment variables:
+
+The frontend includes a `.env.local` file with the API URL. If you need to change it:
+
+```bash
+# .env.local already contains:
+NEXT_PUBLIC_API_URL=http://localhost:3043
+```
+
+See `frontend/ENV_CONFIG.md` for more details.
+
+4. Start the development server:
 
 ```bash
 npm run dev
 ```
 
-The frontend will run on `http://localhost:3001`
+The frontend will run on `http://localhost:3000`
 
 ## API Endpoints
 

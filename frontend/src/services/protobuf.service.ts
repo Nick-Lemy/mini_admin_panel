@@ -1,73 +1,52 @@
 import protobuf from "protobufjs";
+import { User } from "@/types/user";
 
-export interface User {
-  id: number;
-  email: string;
-  role: string;
-  status: string;
-  createdAt: string;
-  emailHash: string;
-  signature: string;
+export class ProtobufService {
+  private static root: protobuf.Root | null = null;
+
+  static async loadProto(): Promise<protobuf.Root> {
+    if (this.root) return this.root;
+
+    const protoContent = `
+syntax = "proto3";
+
+package user;
+
+message User {
+  int32 id = 1;
+  string email = 2;
+  string role = 3;
+  string status = 4;
+  string createdAt = 5;
+  string emailHash = 6;
+  string signature = 7;
 }
 
-let UserListMessage: protobuf.Type;
-let isInitialized = false;
-
-/**
- * Load protobuf schema
- */
-export async function loadProtoSchema(): Promise<void> {
-  if (isInitialized) return;
-
-  try {
-    const root = await protobuf.load("/protos/user.proto");
-    UserListMessage = root.lookupType("user.UserList");
-    isInitialized = true;
-    console.log("Protobuf schema loaded successfully");
-  } catch (error) {
-    console.error("Error loading protobuf schema:", error);
-    throw error;
-  }
+message UserList {
+  repeated User users = 1;
 }
+    `;
 
-/**
- * Deserialize protobuf data to user objects
- */
-export async function deserializeUsers(buffer: ArrayBuffer): Promise<User[]> {
-  if (!isInitialized) {
-    await loadProtoSchema();
+    this.root = protobuf.parse(protoContent).root;
+    return this.root;
   }
 
-  try {
-    const uint8Array = new Uint8Array(buffer);
-    const message = UserListMessage.decode(uint8Array);
-    const object = UserListMessage.toObject(message, {
-      longs: String,
-      enums: String,
-      bytes: String,
-    }) as { users?: User[] };
-    return object.users || [];
-  } catch (error) {
-    console.error("Error deserializing users:", error);
-    throw error;
-  }
-}
+  static async decodeUsers(buffer: ArrayBuffer): Promise<User[]> {
+    try {
+      const root = await this.loadProto();
+      const UserList = root.lookupType("UserList");
 
-/**
- * Fetch and deserialize users from the backend
- */
-export async function fetchUsersProtobuf(
-  apiUrl: string = "http://localhost:3000/api/v1/users/export"
-): Promise<User[]> {
-  try {
-    const response = await fetch(apiUrl);
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
+      const message = UserList.decode(new Uint8Array(buffer));
+      const object = UserList.toObject(message, {
+        longs: String,
+        enums: String,
+        bytes: String,
+      });
+
+      return (object.users || []) as User[];
+    } catch (error) {
+      console.error("Error decoding protobuf:", error);
+      throw error;
     }
-    const buffer = await response.arrayBuffer();
-    return await deserializeUsers(buffer);
-  } catch (error) {
-    console.error("Error fetching users protobuf:", error);
-    throw error;
   }
 }
