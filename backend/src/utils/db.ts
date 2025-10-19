@@ -8,15 +8,17 @@ const sequelize = new Sequelize(DB_NAME, DB_USER, DB_PASS, {
   logging: false, // disable SQL logs
 });
 
-async function connection() {
+export async function initializeDatabase() {
   try {
     await sequelize.authenticate();
     console.log("Database connected!");
+
+    // Sync all models with database (creates tables if they don't exist)
+    await sequelize.sync({ alter: true });
+    console.log("Database tables synced!");
   } catch (err) {
-    console.error("Unable to connect:", err);
+    throw new Error(`Unable to connect: ${err}`);
   }
 }
-
-connection();
 
 export default sequelize;
